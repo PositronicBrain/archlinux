@@ -1,0 +1,27 @@
+How to boot iso images for firmware updates
+===========================================
+Most firmware updates are released as iso images, how to boot the from a
+usb stick?
+
+In particular I wanted to update the
+[firmware](http://knowledge.seagate.com/articles/en_US/FAQ/223651en) of my
+seagete hard drive. The file provided was `Barracuda-ALL-GRCC4H.iso`.
+
+Procedure is:
+
+   * install syslinux and unetbootin
+   * use unetbootin to install freedos to the usb stick
+   * mount the stick
+   * copy  /usr/lib/syslinux/memdisk to the root of the usb
+
+Fineally edit the file syslinux.cfg and add
+
+    label SeaTools
+    linux memdisk
+    initrd Barracuda-ALL-GRCC4H.iso
+    append iso
+
+In my particular case I needed to do one further step. Change in the bios
+settings the controller for the hard drive frop sata to ide mode.
+
+See also [this](http://scoutzfiction.blogspot.ch/2012/10/bootable-seagate-firmware-iso.html)

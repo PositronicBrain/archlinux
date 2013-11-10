@@ -1,0 +1,70 @@
+Partitioning and creating filesystem on the Seagate 3Tb
+=======================================================
+
+Partition was made with cgdisk. It sets the alignment to 1Mb. This is is
+fine both for hd (multiple of 4k) and for ssd (multiple of 512k).
+We can check that everything is fine with parted:
+
+    $ sudo parted /dev/sdb
+    GNU Parted 3.1
+    Using /dev/sdb
+    Welcome to GNU Parted! Type 'help' to view a list of commands.
+    (parted) u s
+    (parted) p
+    Model: ATA ST3000DM001-9YN1 (scsi)
+    Disk /dev/sdb: 5860533168s
+    Sector size (logical/physical): 512B/4096B
+    Partition Table: gpt
+    Disk Flags:
+
+    Number  Start  End          Size         File system  Name         Flags
+     1      2048s  5860533134s  5860531087s               BIGSTORAGE2
+
+    (parted)
+
+Notes:
+    * (5860533168-1) - 5860533134 = 33
+      This is becasue gpt writes the partition table at the beginning and at the
+      end of the disk, using 33 sectors for each.
+    * 2048*512 = 1048576. Partition is aligned to 1Mb
+
+
+This is the mkfs command issued:
+
+     $ sudo mkfs.btrfs -l 16384 -n 16384 -LBIGSTORAGE2 /dev/sdb1
+     [sudo] password for federico:
+     
+     WARNING! - Btrfs Btrfs v0.19 IS EXPERIMENTAL
+     WARNING! - see http://btrfs.wiki.kernel.org before using
+     
+     fs created label BIGSTORAGE2 on /dev/sdb1
+         nodesize 16384 leafsize 16384 sectorsize 4096 size 2.73TB
+     Btrfs Btrfs v0.19
+
+
+Note:
+
+  * Sector size is automatically seto to the correct value for modern hd (4k)
+
+  * Since [Kernel
+    3.5](http://kernelnewbies.org/Linux_3.4#head-f858c75d1191ae947cf134622606a97c53917dcb)
+    leafsize and nodesize can be set to a value different than 4k. I set them
+    to 16kb according to this
+    [thread](http://permalink.gmane.org/gmane.comp.file-systems.btrfs/19440)
+
+
+Finally the command to create the
+[raid](https://btrfs.wiki.kernel.org/index.php/Using_Btrfs_with_Multiple_Devices):
+
+        $ sudo mount /dev/sdb1 /media/Storage/
+        [federico @ localhost ~]
+        $ sudo btrfs device add /dev/sdc1 /media/Storage/
+        [federico @ localhost ~]
+        $
+        [federico @ localhost ~]
+        $ sudo btrfs balance start -dconvert=raid1 -mconvert=raid1 /media/Storage/
+        Done, had to relocate 1202 out of 1202 chunks
+        [federico @ localhost ~]
+        $
+
+and add the following lines to /etc/fstab
