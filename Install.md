@@ -128,12 +128,14 @@ Creating the uefi partition
 ---------------------------
 
     mkdosfs -F32 -nEFI /dev/sdb1
-    mkdir /boot/efi
-    mount /dev/sdb1 /boot/efi/
-    mkdir -p /boot/efi/EFI/arch
-    cp /boot/vmlinuz-linux /boot/efi/EFI/arch/vmlinuz-arch.efi
-    cp /boot/initramfs-linux.img /boot/efi/EFI/arch/initramfs-arch.img
-    cp /boot/initramfs-linux-fallback.img /boot/efi/EFI/arch/initramfs-arch-fallback.img
+    mkdir /tmp/boot/
+    mv /boot/* /tmp/boot/
+    mount /dev/sdb1 /boot/
+    mv /tmp/boot/* /boot
+
+Add the following fstab entry:
+
+      LABEL=EFI   /boot   vfat  defaults,rw,relatime,fmask=0133,dmask=0022  0      0
 
 Installing the UEFI shell
 -------------------------
@@ -142,28 +144,40 @@ download the [uefi shell](https://edk2.svn.sourceforge.net/svnroot/edk2/trunk/ed
 
 Move it to the following file:
 
-     /boot/efi/shellx64.efi
+     /boot/SHELLX64.EFI
 
 Configuring the Uefi boot
 -------------------------
 Reboot the machine and start the UEFI shell from the UEFI motherboard menu. Then install
 the kernel:
 
-      bcfg boot add 3 fs0:\EFI\arch\vmlinuz-arch.efi "ArchLinux"
+      bcfg boot add 3 fs0:\vmlinuz-linux "ArchLinux"
 
 And add the boot options:
 
-      bcfg boot -opt 3 "initrd=EFI/arch/initramfs-arch.img zfs=bootfs ro"
+      bcfg boot -opt 3 "initrd=initramfs-linux.img zfs=bootfs rw"
 
 Single user:
 
-      bcfg boot add 4 fs0:\EFI\arch\vmlinuz-arch.efi "ArchLinux single user"
-      bcfg boot -opt 4 "initrd=EFI/arch/initramfs-arch.img zfs=bootfs single ro"
+      bcfg boot add 4 fs0:\vmlinuz-linux "ArchLinux single user"
+      bcfg boot -opt 4 "initrd=initramfs-arch.img zfs=bootfs single rw"
 
 Single shell (for emergency):
 
-      bcfg boot add 5 fs0:\EFI\arch\vmlinuz-arch.efi "ArchLinux init=/bin/sh"
-      bcfg boot -opt 5 "initrd=EFI/arch/initramfs-arch.img zfs=bootfs init=/bin/sh"
+      bcfg boot add 5 fs0:\vmlinuz-linux "ArchLinux init=/bin/sh"
+      bcfg boot -opt 5 "initrd=initramfs-arch.img zfs=bootfs init=/bin/sh rw"
+
+Force mounting the zpool:
+
+      bcfg boot add 5 fs0:\vmlinuz-linux "ArchLinux zfs_force=1"
+      bcfg boot -opt 5 "initrd=initramfs-arch.img zfs=bootfs zfs_force=1 rw"
+
+You can also add entries from the shell if you install efibootmgr:
+
+     efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img zfs=bootfs rw"
+     efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux single user" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img single zfs=bootfs rw"
+     efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux init=/bin/sh" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img init=/bin/sh zfs=bootfs rw"
+     efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux zfs_force=1" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img zfs_force=1 zfs=bootfs rw"
 
 Misc configuration
 ------------------
@@ -274,16 +288,6 @@ For icons, Ubuntu Human:
 
    pacman -S human-icon-theme
 
-
-IMPORTANT!!!
-------------
-When updating the kernel remember to mount the uefi partition first.
-After the update the module for FAT32 won't be there anymore.
-
-    mount /dev/sdb1 /boot/efi/
-    cp /boot/vmlinuz-linux /boot/efi/EFI/arch/vmlinuz-arch.efi
-    cp /boot/initramfs-linux.img /boot/efi/EFI/arch/initramfs-arch.img
-    cp /boot/initramfs-linux-fallback.img /boot/efi/EFI/arch/initramfs-arch-fallback.img
 
 Infinality
 ----------
