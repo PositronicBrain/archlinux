@@ -76,7 +76,7 @@ The output of `mount` should show it as mounted.
 
 Install the base packages:
 
-    pacstrap /mnt base 
+    pacstrap /mnt base
 
 Check that everyting is fine:
 
@@ -93,7 +93,7 @@ arch-chroot /mnt
 Working in the chroot
 ---------------------
 First add the repository:
-    vi /etc/pacman.conf 
+    vi /etc/pacman.conf
 
     [demz-repo-core]
     Server = http://demizerone.com/$repo/$arch
@@ -239,7 +239,7 @@ Add to wheel for sudo rights:
 
 Installing avahi for hostname resolution
 -----------------------------------------
-Install avahi and nss-mdns 
+Install avahi and nss-mdns
 Edit /etc/nsswitch.conf:
 
     hosts: files myhostname dns -> hosts: files myhostname mdns_minimal [NOTFOUND=return] dns
@@ -263,30 +263,19 @@ Installing lightdm
 ------------------
 
     pacman -S lightdm lightdm-gtk3-greeter
-    install -m 744 /usr/share/xsessions/
-
-Add an entry for xmonad:
-
-    cat > /usr/share/xsessions/xmonad.desktop << EOF
-    [Desktop Entry]
-    Name=Xmonad
-    Comment=Tiling window manager
-    Exec = xmonad
-    TryExec= /usr/bin/xmonad
-    Type=XSession
-    EOF
-
     systemctl enable lightdm
+
+install 'xsession.desktop' from aur.
 
 Themes
 -----
 For gtk I use Adwaita from gnome themes:
 
-    pacman -S gnome-themes
+    pacman -S gnome-themes-standard
 
-For icons, Ubuntu Human:
+For icons, Faience azur:
 
-   pacman -S human-icon-theme
+   pacman -S faience-icon-theme
 
 
 Infinality
@@ -297,3 +286,10 @@ engine. There are precompiled packages. See
 
 You must change the installed fonts with the infinality ones, e.g.
 ttf-dejavu is replaced by t1-dejavu-ib.
+
+Audio
+-----
+
+    pacman -S jack2-dbus
+    pacman -S qjackctl
+    pacman -S lib32-jack2   (for wine compatibility)
