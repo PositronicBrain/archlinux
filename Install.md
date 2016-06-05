@@ -306,3 +306,9 @@ Audio
     pacman -S jack2-dbus
     pacman -S qjackctl
     pacman -S lib32-jack2   (for wine compatibility)
+
+Configure quodlibet
+    
+    preferences -> playback
+    outputpipeline: jackaudiosink
+    
