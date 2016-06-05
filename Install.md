@@ -1,28 +1,41 @@
 Installing archlinux with zfs
 =============================
 
-Update pacman
+Create a custom iso with support for zfs
+----------------------------------------
+install the archiso package and create the build env:
 
-    pacman -Sy
-    pacman -S pacman
+     pacman -S archiso
+     mkdir ~/archlive
+     cp -r /usr/share/archiso/configs/releng/* ~/archlive
+     cd ~/archlive
+     
+Add zfs support, in `~/archlive/pacman.conf` add the line:
 
-Add the [zfs repository](https://wiki.archlinux.org/index.php/ZFS#Archiso_tracking_repositoryrepository)
-synchronized with the iso to /etc/pacman.conf.
+    ...
+    [archzfs]
+    Server = http://archzfs.com/$repo/x86_64
 
-    [demz-repo-archiso]
-    Server = http://demizerone.com/$repo/$arch
+Add the zfs package:
 
-Import the repo key:
+    cat >> ~/archlive/packages.x86_64
+    archzfs-linux
+    ^D
 
-    pacman-key -r 0EE7A126
-    pacman-key --lsign-key 0EE7A126
+Build the iso:
 
-Install zfs
+    mkdir ~/archlive/out/
+    sudo ./build.sh -v
 
-     pacman -Sy
-     pacman -S zfs
+copy  the iso to the usb stick:
 
-Partition the disk:
+    dd if=out/archlinux.iso of=/dev/sd[x] bs=4M
+    
+Then boot using the usb stick
+
+
+Partition the disk
+------------------
 
     parted /dev/disk/by-id/ata-ST3000DM001-9YN166_S1F0LGEY
 
