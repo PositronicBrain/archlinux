@@ -56,20 +56,50 @@ are not free, to be properly aligned the last partion must end at -41
 (which is fine for HDs because the total number of sectors in the hd is a multiple of 8,
 but it is not generally true for SSDs)
 
-    Number  Start    End          Size         File system  Name  Flags
-     1      40s      409639s      409600s      fat32              boot
-     2      409640s  5860533127s  5860123488s
+     $ sudo parted /dev/sda
+     [sudo] password for federico: 
+     GNU Parted 3.2
+     Using /dev/sda
+     Welcome to GNU Parted! Type 'help' to view a list of commands.
+     (parted) u s                                                              
+     (parted) p                                                                
+     Model: ATA SAMSUNG SSD 830 (scsi)
+     Disk /dev/sda: 500118192s
+     Sector size (logical/physical): 512B/512B
+     Partition Table: gpt
+     Disk Flags: 
+
+     Number  Start    End         Size        File system  Name  Flags
+     1      2048s    206847s     204800s     fat32              boot, esp
+     2      206848s  500117503s  499910656s  ext4
 
 In the above partion there is a fat32 partition of 200M for the UEFI boot,
 and a partion for the zfs pool beginning on a sector divisible by 8 and ending at -40.
 
-The efi partition should have the boot flag:
+The partition type must be created:
+
+    mklabel gpt
+    
+ The the partition:
+ 
+     mkpart
+
+Ignore the warning about the partition not being properly aligned.
+
+The efi partition should have the `boot`, and `esp` flag:
 
     set 1 boot
+    set 1 esp
+    
+ The partition table for the 8TB hd is:
+ 
+     Number  Start  End           Size          File system  Name  Flags
+     1      40s    15628053127s  15628053088s  ext4
+
 
 Creating the zpool
 ------------------
-Create a pool named wirh the hard drive model (ST3000DM001),
+Create a pool named with the hard drive model (ST3000DM001),
 and with 2^12=4kb sector size:
 
     zpool create -o ashift=12 -O canmount=off -O checksum=sha256 \
