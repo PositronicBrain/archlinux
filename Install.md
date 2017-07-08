@@ -222,6 +222,32 @@ You can also add entries from the shell if you install efibootmgr:
      efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux init=/bin/sh" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img init=/bin/sh zfs=bootfs rw"
      efibootmgr -c -d /dev/sdb -p 1 -L "ArchLinux zfs_force=1" -l '\vmlinuz-linux' -u "initrd=initramfs-linux.img zfs_force=1 zfs=bootfs rw"
 
+Loding the systme using systemd bootloader (NEW)
+------------------------------------------------
+This supersedes the previous method
+ 
+    bootctl update
+
+    $ mkdir -p  /boot/EFI/BOOT/
+    $ cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi /boot/EFI/BOOT/
+    $ mv /boot/EFI/BOOT/systemd-bootx64.efi /boot/EFI/BOOT/BOOTX64.EFI
+    $ mkdir /boot/loader
+    $ cp /usr/share/systemd/bootctl/loader.conf /boot/loader/
+    $ vi /boot/loader/loader.conf 
+    
+    $ cat /boot/loader/loader.conf 
+    default arch
+
+    $ mkdir /boot/loader/entries
+    $ cp /usr/share/systemd/bootctl/arch.conf /boot/loader/entries/
+    $ vi /boot/loader/entries/ 
+    $ cat /boot/loader/entries/arch.conf 
+    title   Arch Linux
+    linux   /vmlinuz-linux
+    initrd  /intel-ucode.img
+    initrd  /initramfs-linux.img
+    options root=UUID=eee538a2-8f02-42c2-97d6-15df80269f05 rootfstype=ext4 add_efi_memmap
+
 Misc configuration
 ------------------
 
